@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flowr"
+version = "0.1.0"
+description = "Deterministic DAG pipeline runner with content-addressed caching. Pure stdlib."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Nikhil Cherry" }]
+# Runtime dependencies: NONE. flowr is stdlib-only.
+# numpy is optional — if present, ndarray results are stored as .npz.
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.urls]
+Homepage = "https://github.com/nikhilcherry/flowr"
+
+[project.scripts]
+flowr = "flowr.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["flowr*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["slow: longer-running integration tests"]
