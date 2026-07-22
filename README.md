@@ -66,6 +66,27 @@ Every miss carries a reason: `new node`, `code changed`,
 `param min_period: 0.5 -> 0.8`, `file content changed: data/tic123.npz`,
 `stage version: 1 -> 2`, or `upstream miss`.
 
+```mermaid
+flowchart LR
+    subgraph fanout ["20x independent branches (fan-out over data/tic*.npz)"]
+        D1["detrend #1"]:::hit --> S1["search #1"]:::hit
+        D2["detrend #2"]:::hit --> S2["search #2"]:::hit
+        Ddots["..."]:::hit --> Sdots["..."]:::hit
+    end
+    S1 --> AG["aggregate\ntop_k: 5 -&gt; 3"]:::miss
+    S2 --> AG
+    Sdots --> AG
+    AG --> FIG["figure"]:::miss
+
+    classDef hit fill:#22c55e,color:#fff,stroke:none;
+    classDef miss fill:#ef4444,color:#fff,stroke:none;
+```
+
+This is the shape of the example above: changing `aggregate`'s `top_k`
+parameter only invalidates `aggregate` and everything downstream of it
+(`figure`) — all 40 `detrend`/`search` nodes across the fan-out stay green,
+since their own code, params, and inputs never changed.
+
 The read-only CLI inspects the store from any directory:
 
 ```
