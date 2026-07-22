@@ -3,7 +3,19 @@
 import json
 import sqlite3
 
+import pytest
+
+from flowr.cli import _human_bytes
 from helpers import run_cli, run_demo
+
+
+@pytest.mark.parametrize("n,text", [
+    (0, "0 B"), (1023, "1023 B"), (1024, "1.0 kB"),
+    (1536, "1.5 kB"), (1024 ** 2, "1.0 MB"), (1024 ** 4, "1.0 TB"),
+    (1024 ** 5, "1024.0 TB"),
+])
+def test_human_bytes(n, text):
+    assert _human_bytes(n) == text
 
 
 def _seed(store, tmp_path, n=3):

@@ -4,7 +4,8 @@ import shutil
 
 import pytest
 
-from flowr.store import Store, deserialize_value, serialize_value
+from flowr.errors import FlowrError
+from flowr.store import Store, deserialize_value, parse_duration, serialize_value
 
 
 @pytest.fixture
@@ -129,3 +130,18 @@ def test_non_contiguous_array_roundtrip(store):
 def test_mixed_and_plain_values_pickle():
     assert serialize_value([1, 2])[0] == "pickle"
     assert serialize_value("x")[0] == "pickle"
+
+
+@pytest.mark.parametrize("text,seconds", [
+    ("45s", 45), ("30m", 30 * 60), ("12h", 12 * 3600),
+    ("7d", 7 * 86400), ("2w", 2 * 7 * 86400), ("0d", 0),
+    (" 7d ", 7 * 86400),
+])
+def test_parse_duration_valid(text, seconds):
+    assert parse_duration(text) == seconds
+
+
+@pytest.mark.parametrize("text", ["7", "7x", "-7d", "7.5d", "d7", "", "7D"])
+def test_parse_duration_rejects_malformed(text):
+    with pytest.raises(FlowrError):
+        parse_duration(text)
