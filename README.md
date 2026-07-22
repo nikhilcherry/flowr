@@ -38,6 +38,13 @@ peaks = flowr.map(search, lcs)
 flowr.run(peaks, workers=4)                    # independent branches in parallel
 ```
 
+`examples/demo_pipeline.py` is a synthetic but realistically-shaped 20-item
+fan-out pipeline (`generate -> clean -> analyze -> aggregate -> figure`),
+used by the test suite and by [VERIFICATION.md](VERIFICATION.md) for the
+acceptance checks below. Its output figure:
+
+![demo pipeline output](examples/demo_fig.png)
+
 The cache lives in `./.flowr/` (override with `FLOWR_DIR`). Change
 `min_period` and only `search` re-runs; edit `detrend`'s logic and both
 re-run; add a comment or docstring and **nothing** re-runs — code is hashed
