@@ -151,6 +151,9 @@ def run(target, workers=1, dry=False, fail_fast=False, root=None):
     - fail_fast=True aborts at the first failure instead of finishing
       independent branches.
     """
+    if workers < 1:
+        raise FlowrError(f"workers must be >= 1, got {workers}")
+
     single = isinstance(target, Node)
     if single:
         targets = [target]

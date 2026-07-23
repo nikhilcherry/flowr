@@ -4,7 +4,7 @@ blocked subtrees, early cutoff."""
 import pytest
 
 import flowr
-from flowr.errors import RunError
+from flowr.errors import FlowrError, RunError
 
 PIPE = """
     import flowr, os
@@ -160,6 +160,32 @@ def test_retries(store_dir, make_module, counter, tmp_path):
     m = make_module(src)
     assert flowr.run(m.flaky(9)) == 9
     assert flaky.read_text() == "xxx"     # failed twice, third attempt won
+
+
+def test_negative_retries_rejected_at_stage_definition(make_module):
+    # retries=-1 makes range(retries + 1) == range(0), so the stage
+    # function is never even attempted -- silently reporting a failure
+    # with no traceback (tb stays None) instead of a clear config error.
+    src = """
+    import flowr
+
+    @flowr.stage(retries=-1)
+    def bad(x):
+        return x
+    """
+    with pytest.raises(FlowrError, match="retries must be >= 0"):
+        make_module(src)
+
+
+def test_run_rejects_non_positive_workers(store_dir, make_module):
+    # workers=0 (or negative) reached ProcessPoolExecutor(workers) directly,
+    # crashing with a raw, confusing "max_workers must be greater than 0"
+    # ValueError from concurrent.futures instead of a clear flowr error.
+    m = make_module(PIPE)
+    node = m.source(1)
+    for bad_workers in (0, -1):
+        with pytest.raises(FlowrError, match="workers must be >= 1"):
+            flowr.run(node, workers=bad_workers)
 
 
 def test_failure_blocks_subtree_but_independent_branch_completes(

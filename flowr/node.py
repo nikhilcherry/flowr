@@ -194,6 +194,8 @@ class Stage:
         self.module = func.__module__
         self.version = str(version)
         self.code_deps = tuple(code_deps)
+        if int(retries) < 0:
+            raise FlowrError(f"retries must be >= 0, got {retries}")
         self.retries = int(retries)
         self.signature = inspect.signature(func)
         deps = tuple(d.func if isinstance(d, Stage) else d for d in self.code_deps)
