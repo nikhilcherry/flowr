@@ -105,6 +105,14 @@ def _diagnose_miss(store, node, node_key, parent_keys):
             return "code changed"
         if same_edges and same_code and not same_params:
             return _diff_params(row_params, node.param_json)
+        if same_code and same_params and not same_edges:
+            # This exact stage call ran before with identical code and
+            # params, so the only thing that can have changed is an
+            # ancestor further up the graph -- without this, a change two
+            # or more stages upstream would fall through to the
+            # uninformative "new node" for every descendant whose own
+            # parents are already cache hits.
+            return "upstream changed (same code and params, different input)"
     return "new node"
 
 

@@ -121,6 +121,37 @@ def test_dry_run_reasons(store_dir, make_module, tmp_path):
     assert reasons["double"] == "upstream miss"
 
 
+def test_dry_run_reason_for_upstream_changed_with_identical_code_and_params(
+    store_dir, make_module, tmp_path
+):
+    """A miss whose own code+params exactly match history, but whose upstream
+    hash doesn't match any historical pairing, is neither 'code changed' nor
+    a param diff -- and shouldn't fall through to the uninformative 'new
+    node' just because its own immediate parent is already a cache hit."""
+    name = "m_upstream_reason"
+    src = PIPE + """
+    @flowr.stage
+    def load(f):
+        _count("load")
+        with open(f, "rb") as fh:
+            return fh.read()
+    """
+    m = make_module(src, name=name)
+    data = tmp_path / "in.dat"
+
+    data.write_bytes(b"v1")
+    flowr.run(m.double(m.load(flowr.File(data))))  # commits double against load(v1)
+
+    data.write_bytes(b"v2")
+    flowr.run(m.load(flowr.File(data)))  # commits load(v2) alone -- double never sees it
+
+    node = m.double(m.load(flowr.File(data)))  # same double code/params, new upstream
+    plan = flowr.run(node, dry=True)
+    reasons = {e.stage_name: e.reason for e in plan.misses}
+    assert "load" not in reasons  # load(v2) is already a cache hit
+    assert "upstream changed" in reasons["double"]
+
+
 def test_early_cutoff_shares_downstream_cache(store_dir, make_module, counter):
     name = "m_cutoff"
     m = make_module(PIPE, name=name)

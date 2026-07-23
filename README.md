@@ -64,7 +64,11 @@ print(plan)
 
 Every miss carries a reason: `new node`, `code changed`,
 `param min_period: 0.5 -> 0.8`, `file content changed: data/tic123.npz`,
-`stage version: 1 -> 2`, or `upstream miss`.
+`stage version: 1 -> 2`, `upstream miss` (a direct parent is itself a
+miss), or `upstream changed (same code and params, different input)` (this
+stage's own code and params exactly match a prior run, but no historical
+run paired them with the current upstream result — some ancestor further
+up the graph changed).
 
 The read-only CLI inspects the store from any directory:
 
