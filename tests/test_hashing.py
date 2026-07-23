@@ -108,6 +108,19 @@ def test_lambda_and_nested_functions_rejected():
         flowr.stage(outer())
 
 
+def test_functools_partial_rejected_with_clear_error():
+    # functools.partial objects have no __name__/__qualname__ at all, so
+    # the lambda/closure check must not crash with a raw AttributeError
+    # when probing those attributes on something that lacks them.
+    import functools
+
+    def real_func(x, y):
+        return x + y
+
+    with pytest.raises(FlowrError, match="top-level"):
+        flowr.stage(functools.partial(real_func, y=1))
+
+
 # ------------------------------------------------------------ param canon
 
 def test_default_vs_explicit_param_hash_identically(make_module):

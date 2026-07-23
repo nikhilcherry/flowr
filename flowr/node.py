@@ -175,6 +175,13 @@ class Stage:
     Node; the underlying function runs only inside flowr.run()."""
 
     def __init__(self, func, *, version="0", code_deps=(), retries=0):
+        if not hasattr(func, "__name__") or not hasattr(func, "__qualname__"):
+            raise FlowrError(
+                "flowr stages must be top-level named functions (picklable "
+                f"and importable); got {func!r}, which has no __name__/"
+                "__qualname__ (e.g. a functools.partial). Wrap it in a "
+                "regular top-level function instead."
+            )
         if func.__name__ == "<lambda>" or "<locals>" in func.__qualname__:
             raise FlowrError(
                 "flowr stages must be top-level named functions (picklable "
