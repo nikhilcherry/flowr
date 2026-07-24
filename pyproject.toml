@@ -28,4 +28,8 @@ include = ["flowr*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# flowr/ sits at the repo root, but pytest's prepend import mode only puts
+# tests/ on sys.path — so `import flowr` failed unless the package happened to
+# be pip-installed. Put the root on sys.path explicitly.
+pythonpath = ["."]
 markers = ["slow: longer-running integration tests"]
